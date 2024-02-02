@@ -70,9 +70,9 @@ Sub COMPILE()
                     Sheets(1).Cells(I,filos_lectura(J)).Select
                     Exit Sub
                 End If
-                busqueda = Application.Match(Sheets(1).Cells(I, filos_lectura(J)).Value & "*", colores, 0)
+                busqueda = Application.Match(Trim(Sheets(1).Cells(I, filos_lectura(J)).Value) & "*", colores, 0)
                 If IsError(busqueda) Then
-                    MsgBox("No se encontró el color " & Sheets(1).Cells(I, filos_lectura(J)).Value & " en: " & letrasArray(filos_lectura(J)) & I)
+                    MsgBox("No se encontró el color " & Sheets(1).Cells(I, filos_lectura(J)) & " en: " & letrasArray(filos_lectura(J)) & I)
                     Sheets(1).Cells(I,filos_lectura(J)).Select
                     Exit Sub
                 End If
