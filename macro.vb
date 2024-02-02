@@ -3,16 +3,28 @@ Sub COMPILE()
 
     '%%%% LASTROW %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Dim wS, wS1 As Worksheet, Lastrow, Lastrow1 As Long
-    Dim columnas, repeticiones, almacenador As Variant ' Declara un array
+    Dim columnas, datos_lectura, datos_escritura, repeticiones, almacenador, colores, letrasArray, filos_lectura, filos_escritura, busqueda, numericos_lectura, numericos_escritura As Variant ' Declara un array
     Dim I, J As Long
-    Dim duro, suave As String
+    Dim duro, suave, tipo_filo As String
     Set wS = Sheets(1)
 
     duro = "22X2"
     suave = "22X045"
     almacenador = 0
+    colores = Sheets(4).Range("A:A").Value
 
-    columnas = Array(6, 8, 9, 11, 12, 14, 15, 17, 18)
+    columnas = Array(7, 9, 10, 12, 13, 15, 16, 18, 19)
+    numericos_validacion = Array(4,5,6)
+    datos_lectura = Array(4,5,6,20,21)
+    datos_escritura = Array(3,4,5,11,12)
+    filos_lectura = Array(8,11,14,17)
+    filos_escritura = Array(7,8,9,10)
+
+    ReDim letrasArray(1 To 21) ' Dimensiona el array
+    
+    For I = 1 To 21
+        letrasArray(I) = Chr(64 + I)
+    Next I
 
     Lastrow = wS.UsedRange.Row - 1 + wS.UsedRange.Rows.Count
 
@@ -20,11 +32,7 @@ Sub COMPILE()
     For I = Lastrow To 1 Step -1
         If Not (IsEmpty(wS.Cells(I, 1))) Then Exit For
         Next I
-
-
-
         Lastrow = I
-
         For J = LBound(columnas) To UBound(columnas)
             For I = 2 To Lastrow
                 Dim validador As Variant
@@ -40,105 +48,49 @@ Sub COMPILE()
             Next I
         Next J
 
+        For J = LBound(numericos_validacion) To UBound(numericos_validacion)
+            For I = 2 To Lastrow
+                If Not IsNumeric(Sheets(1).Cells(I, datos_lectura(J)).Value) Then
+                    MsgBox("Error, valor no numérico en: " & letrasArray(numericos_validacion(J)) & I)
+                    Sheets(1).Cells(I,numericos_validacion(J)).Select
+                    Exit Sub
+                End If
+            Next I
+        Next J
+        For J = LBound(datos_lectura) To UBound(datos_lectura)
+            For I = 2 To Lastrow
+                Sheets(3).Cells(I + 6, datos_escritura(J)).Value = Sheets(1).Cells(I, datos_lectura(J)).Value
+            Next I
+        Next J
+
+        For J = LBound(filos_lectura) To UBound(filos_lectura)
+            For I = 2 To Lastrow
+                If Sheets(1).Cells(I,filos_lectura(J)+1).Value <> "" And Sheets(1).Cells(I, filos_lectura( J)+2).Value <> "" Then
+                    MsgBox("Error, solo se puede seleccionar una sola opción en: " & letrasArray(filos_lectura(J)) & I)
+                    Sheets(1).Cells(I,filos_lectura(J)).Select
+                    Exit Sub
+                End If
+                busqueda = Application.Match(Sheets(1).Cells(I, filos_lectura(J)).Value & "*", colores, 0)
+                If IsError(busqueda) Then
+                    MsgBox("No se encontró el color " & Sheets(1).Cells(I, filos_lectura(J)).Value & " en: " & letrasArray(filos_lectura(J)) & I)
+                    Sheets(1).Cells(I,filos_lectura(J)).Select
+                    Exit Sub
+                End If
+                If Sheets(1).Cells(I, filos_lectura(J) + 1).Value <> "" And Sheets(1).Cells(I, filos_lectura(J)).Value <> "" Then
+                    tipo_filo = duro
+                else
+                    tipo_filo = suave
+                End If
+                If Sheets(1).Cells(I, filos_lectura(J)).Value <> "" Then
+                    Sheets(3).Cells(I + 6, filos_escritura(J)).Value = UCase(Sheets(4).Cells(busqueda, 1).Value) & "_" & tipo_filo
+                End If
+            Next I
+        Next J
+
         For I = 2 To Lastrow
-            c1 = 0
-            c2 = 0
-            c3 = 0
-            c4 = 0
-            Sheets(3).Cells(I + 6, 3).Value = Sheets(1).Cells(I, 3).Value
-            Sheets(3).Cells(I + 6, 4).Value = Sheets(1).Cells(I, 4).Value
-            Sheets(3).Cells(I + 6, 5).Value = Sheets(1).Cells(I, 5).Value
-            ' Sheets(3).Cells(I + 6, 7).Value = Sheets(1).Cells(I, 7).Value ' L1
-            ' Sheets(3).Cells(I + 6, 9).Value = Sheets(1).Cells(I, 10).Value ' L2
-            ' Sheets(3).Cells(I + 6, 11).Value = Sheets(1).Cells(I, 13).Value ' A1
-            ' Sheets(3).Cells(I + 6, 13).Value = Sheets(1).Cells(I, 16).Value ' A2
-            Sheets(3).Cells(I + 6, 11).Value = Sheets(1).Cells(I, 19).Value
-            Sheets(3).Cells(I + 6, 12).Value = Sheets(1).Cells(I, 20).Value
-
-            c1 = 0
-            ' '''''''''''''''' L1 '''''''''''''''''''''''''''''''''''''''
-            If Sheets(1).Cells(I, 8).Value <> "" And Sheets(1).Cells(I, 7).Value <> "" Then
-                Sheets(3).Cells(I + 6, 7).Value = Sheets(1).Cells(I, 7).Value & "_" & duro ' Duro
-                c1 = c1 + 1
-            End If
-
-            If Sheets(1).Cells(I, 9).Value <> "" And Sheets(1).Cells(I, 7).Value <> "" Then
-                Sheets(3).Cells(I + 6, 7).Value = Sheets(1).Cells(I, 7).Value & "_" & suave
-                c1 = c1 + 1
-            End If
-
-            If c1 = 2 Then
-                Sheets(3).Cells(I + 6, 7).Value = "ERR"
-                MsgBox ("Error, ¡sólo debe seleccionar una opción! in L1")
-             Exit Sub
-            End If
-            ' '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-
-            ' '''''''''''''''' L2 '''''''''''''''''''''''''''''''''''''''
-            If Sheets(1).Cells(I, 11).Value <> "" And Sheets(1).Cells(I, 10).Value <> "" Then
-                Sheets(3).Cells(I + 6, 8).Value = Sheets(1).Cells(I, 10).Value & "_" & duro
-                c2 = c2 + 1
-            End If
-
-            If Sheets(1).Cells(I, 12).Value <> "" And Sheets(1).Cells(I, 10).Value <> "" Then
-                Sheets(3).Cells(I + 6, 8).Value = Sheets(1).Cells(I, 10).Value & "_" & suave
-                c2 = c2 + 1
-            End If
-
-            If c2 = 2 Then
-                Sheets(3).Cells(I + 6, 8).Value = "ERR"
-                MsgBox ("Error, ¡sólo debe seleccionar una opción! in L2")
-             Exit Sub
-            End If
-            ' '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-
-            ' '''''''''''''''' A1 '''''''''''''''''''''''''''''''''''''''
-            If Sheets(1).Cells(I, 14).Value <> "" And Sheets(1).Cells(I, 13).Value <> "" Then
-                Sheets(3).Cells(I + 6, 9).Value = Sheets(1).Cells(I, 13).Value & "_" & duro
-                c3 = c3 + 1
-            End If
-
-            If Sheets(1).Cells(I, 15).Value <> "" And Sheets(1).Cells(I, 13).Value <> "" Then
-                Sheets(3).Cells(I + 6, 9).Value = Sheets(1).Cells(I, 13).Value & "_" & suave
-                c3 = c3 + 1
-            End If
-
-            If c3 = 2 Then
-                Sheets(3).Cells(I + 6, 9).Value = "ERR"
-                MsgBox ("Error, ¡sólo debe seleccionar una opción! in A1")
-             Exit Sub
-            End If
-            ' '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-
-            ' '''''''''''''''' A2 '''''''''''''''''''''''''''''''''''''''
-            If Sheets(1).Cells(I, 17).Value <> "" And Sheets(1).Cells(I, 16).Value <> "" Then
-                Sheets(3).Cells(I + 6, 10).Value = Sheets(1).Cells(I, 16).Value & "_" & duro
-                c4 = c4 + 1
-            End If
-
-            If Sheets(1).Cells(I, 18).Value <> "" And Sheets(1).Cells(I, 16).Value <> "" Then
-                Sheets(3).Cells(I + 6, 10).Value = Sheets(1).Cells(I, 16).Value & "_" & suave
-                c4 = c4 + 1
-            End If
-
-            If c4 = 2 Then
-                Sheets(3).Cells(I + 6, 10).Value = "ERR"
-                MsgBox ("Error, ¡sólo debe seleccionar una opción! in A2")
-             Exit Sub
-            End If
-            '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-
-            '' VETA
-            If Sheets(1).Cells(I, 6).Value <> "" Then Sheets(3).Cells(I + 6, 6).Value = "Y"
-                If Sheets(1).Cells(I, 6).Value = "" Then Sheets(3).Cells(I + 6, 6).Value = "N"
-
-                    ''''''''''
-
-                Next I
-
-
-                MsgBox ("Completado")
-
+            If Sheets(1).Cells(I, 7).Value <> "" Then Sheets(3).Cells(I + 6, 6).Value = "Y"
+            If Sheets(1).Cells(I, 7).Value = "" Then Sheets(3).Cells(I + 6, 6).Value = "N"
+        Next I
+        Sheets(3).Activate
+        MsgBox ("Completado")
 End Sub
-
-
