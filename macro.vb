@@ -90,7 +90,7 @@ Sub COMPILE()
         Next J
 
         For I = 2 To Lastrow
-            If Sheets(1).Cells(I, 7).Value <> "" Then Sheets(3).Cells(I + 6, 6).Value = "Y"
+            If Sheets(1).Cells(I, 7).Value <> "" Then Sheets(3).Cells(I + 6, 6).Value = "S"
             If Sheets(1).Cells(I, 7).Value = "" Then Sheets(3).Cells(I + 6, 6).Value = "N"
         Next I
         Sheets(3).Activate
