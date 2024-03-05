@@ -1,4 +1,3 @@
-Option Compare Text
 Sub COMPILE()
 
     '%%%% LASTROW %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -11,14 +10,14 @@ Sub COMPILE()
     duro = "22X2"
     suave = "22X045"
     almacenador = 0
-    colores = Sheets(4).Range("A:A").Value
+    colores = Sheets("Limpieza").Range("A:B").Value
 
     columnas = Array(7, 9, 10, 12, 13, 15, 16, 18, 19)
-    numericos_validacion = Array(4,5,6)
-    datos_lectura = Array(4,5,6,20,21)
-    datos_escritura = Array(3,4,5,11,12)
-    filos_lectura = Array(8,11,14,17)
-    filos_escritura = Array(7,8,9,10)
+    numericos_validacion = Array(4, 5, 6)
+    datos_lectura = Array(4, 5, 6, 20, 21)
+    datos_escritura = Array(3, 4, 5, 11, 12)
+    filos_lectura = Array(8, 11, 14, 17)
+    filos_escritura = Array(7, 8, 9, 10)
 
     ReDim letrasArray(1 To 21) ' Dimensiona el array
     
@@ -51,8 +50,8 @@ Sub COMPILE()
         For J = LBound(numericos_validacion) To UBound(numericos_validacion)
             For I = 2 To Lastrow
                 If Not IsNumeric(Sheets(1).Cells(I, datos_lectura(J)).Value) Then
-                    MsgBox("Error, valor no numérico en: " & letrasArray(numericos_validacion(J)) & I)
-                    Sheets(1).Cells(I,numericos_validacion(J)).Select
+                    MsgBox ("Error, valor no numérico en: " & letrasArray(numericos_validacion(J)) & I)
+                    Sheets(1).Cells(I, numericos_validacion(J)).Select
                     Exit Sub
                 End If
             Next I
@@ -65,24 +64,27 @@ Sub COMPILE()
 
         For J = LBound(filos_lectura) To UBound(filos_lectura)
             For I = 2 To Lastrow
-                If Sheets(1).Cells(I,filos_lectura(J)+1).Value <> "" And Sheets(1).Cells(I, filos_lectura( J)+2).Value <> "" Then
-                    MsgBox("Error, solo se puede seleccionar una sola opción en: " & letrasArray(filos_lectura(J)) & I)
-                    Sheets(1).Cells(I,filos_lectura(J)).Select
+                If Sheets(1).Cells(I, filos_lectura(J) + 1).Value <> "" And Sheets(1).Cells(I, filos_lectura(J) + 2).Value <> "" Then
+                    MsgBox ("Error, solo se puede seleccionar una opción en: " & letrasArray(filos_lectura(J)) & I)
+                    Sheets(1).Cells(I, filos_lectura(J)).Select
                     Exit Sub
                 End If
-                busqueda = Application.Match(Trim(Sheets(1).Cells(I, filos_lectura(J)).Value) & "*", colores, 0)
-                If IsError(busqueda) Then
-                    MsgBox("No se encontró el color " & Sheets(1).Cells(I, filos_lectura(J)) & " en: " & letrasArray(filos_lectura(J)) & I)
-                    Sheets(1).Cells(I,filos_lectura(J)).Select
-                    Exit Sub
-                End If
+
+                busqueda = Trim(Replace(Sheets(1).Cells(I, filos_lectura(J)).Value," ","*"))
                 If Sheets(1).Cells(I, filos_lectura(J) + 1).Value <> "" And Sheets(1).Cells(I, filos_lectura(J)).Value <> "" Then
                     tipo_filo = duro
-                else
+                Else
                     tipo_filo = suave
                 End If
+                busqueda = Application.VLookup(busqueda & "*_" & tipo_filo, colores, 2,0)
+                If IsError(busqueda) Then
+                    MsgBox ("No se encontró el color " & Sheets(1).Cells(I, filos_lectura(J)) & " en: " & letrasArray(filos_lectura(J)) & I)
+                    Sheets(1).Cells(I, filos_lectura(J)).Select
+                    Exit Sub
+                End If
                 If Sheets(1).Cells(I, filos_lectura(J)).Value <> "" Then
-                    Sheets(3).Cells(I + 6, filos_escritura(J)).Value = UCase(Sheets(4).Cells(busqueda, 1).Value) & "_" & tipo_filo
+                    ' Sheets(3).Cells(I + 6, filos_escritura(J)).Value = UCase(Sheets(4).Cells(busqueda, 1).Value) & "_" & tipo_filo
+                    Sheets(3).Cells(I + 6, filos_escritura(J)).Value = busqueda
                 End If
             Next I
         Next J
@@ -94,3 +96,4 @@ Sub COMPILE()
         Sheets(3).Activate
         MsgBox ("Completado")
 End Sub
+
